@@ -1,0 +1,46 @@
+# fable_watch configuration (example).
+#
+# Copy this to config.toml (gitignored) and edit. Secrets and personal targets
+# are NOT set here -- they come from .env (see .env.example). This file contains
+# no personal data and is safe to commit/share.
+
+[watch]
+model                 = "claude-fable-5"     # the model to watch
+interval_seconds      = 300                   # seconds between probes
+probe_prompt          = "Reply with exactly: OK"
+probe_timeout_seconds = 60
+# A probe counts as OFFLINE if its reply contains any of these (case-insensitive).
+offline_sentinels     = ["currently unavailable", "fable-mythos-access"]
+stop_when_online      = true                  # notify once and exit when it returns
+
+# ---------------------------------------------------------------------------
+# Notifications. Every channel is independently toggleable. terminal + toast
+# need no secrets; email + ntfy read their targets from .env / environment.
+# ---------------------------------------------------------------------------
+
+[notify.terminal]
+enabled = true        # ASCII banner + terminal bell (captured in the log)
+
+[notify.desktop]
+enabled = true        # native OS notification, auto-detected per platform:
+                      #   Windows/WSL -> PowerShell toast
+                      #   macOS       -> osascript
+                      #   Linux       -> notify-send (needs libnotify-bin)
+# app_id is Windows/WSL only and sets which app the toast appears under. The
+# PowerShell AUMID below makes script-fired toasts reliably display.
+app_id  = '{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe'
+
+[notify.email]
+enabled   = false     # set true to email yourself when Fable returns
+smtp_host = "smtp.gmail.com"
+smtp_port = 587
+subject   = "Claude Fable 5 is BACK ONLINE"
+# Login, recipient and app-password come from .env:
+#   FABLE_WATCH_SMTP_USERNAME, FABLE_WATCH_EMAIL_TO, FABLE_WATCH_SMTP_PASSWORD
+
+[notify.ntfy]
+enabled  = false      # set true to push to your phone via ntfy
+server   = "https://ntfy.sh"
+priority = "urgent"
+tags     = "rocket"
+# Topic comes from .env: FABLE_WATCH_NTFY_TOPIC

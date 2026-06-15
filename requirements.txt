@@ -1,0 +1,7 @@
+# fable_watch uses only the Python standard library (Python 3.11+ for tomllib).
+# There are no pip dependencies to install.
+#
+# Runtime prerequisites (not pip-installable):
+#   * Claude Code CLI >= 2.1.170 on PATH  -> provides `claude` (Fable-capable)
+#   * A Claude Max subscription, authenticated at ~/.claude/.credentials.json
+#       (run `claude` once and log in; do NOT set ANTHROPIC_API_KEY)

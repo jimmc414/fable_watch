@@ -1,0 +1,13 @@
+# Local config + secrets (never commit these)
+config.toml
+.env
+
+# Runtime artifacts
+fable_watch.log
+fable_watch.pid
+state.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
