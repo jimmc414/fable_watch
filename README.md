@@ -1,8 +1,13 @@
 # fable_watch
 
+![python](https://img.shields.io/badge/python-3.11%2B-blue)
+![dependencies](https://img.shields.io/badge/dependencies-stdlib%20only-success)
+![platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20WSL-lightgrey)
+![license](https://img.shields.io/badge/license-MIT-green)
+
 **Watch for Claude Fable 5 coming back online — and get a loud alert the instant it returns.**
 
-`fable_watch` quietly probes the suspended model on a schedule and fires every notification channel you enable (terminal, desktop toast, email, phone push) the moment it answers normally again. Cross-platform (Linux / macOS / WSL), uses only the Python standard library, and stays on your Claude Max subscription — no API key, no third-party packages.
+`fable_watch` quietly probes the suspended model on a schedule and fires every notification channel you enable (terminal, desktop, email, phone push) the moment it answers normally again. Cross-platform (Linux / macOS / WSL), uses only the Python standard library, and stays on your Claude Max subscription — no API key, no third-party packages.
 
 ---
 
@@ -48,7 +53,7 @@ Only an explicit `online` result triggers an alert, so transient network errors 
 
 The probe, email, ntfy, terminal banner, and the background daemon are all OS-independent. Only the desktop channel is platform-specific, and it degrades gracefully — if no backend is available it simply skips with a logged reason.
 
-## Setup
+## Quick start
 
 ```bash
 git clone https://github.com/jimmc414/fable_watch.git
@@ -57,7 +62,7 @@ cp config.example.toml config.toml     # local toggles (gitignored)
 cp .env.example .env                    # secrets + targets (gitignored)
 ```
 
-Terminal and desktop alerts work immediately — no configuration needed. Email and phone push are optional and described below.
+Terminal and desktop alerts work immediately — no configuration needed. Email and phone push are optional; see [Enabling email](#enabling-email) and [Enabling phone push (ntfy)](#enabling-phone-push-ntfy). Full command reference is under [How to run](#how-to-run). When Fable returns, you get one alert and the daemon exits.
 
 ## How to run
 
@@ -79,6 +84,18 @@ python fable_watch.py status        # check on it any time
 ```
 
 The daemon logs to `fable_watch.log`, tracks progress in `state.json`, and records its PID in `fable_watch.pid`. By default (`stop_when_online = true`) it sends one round of notifications and exits the moment Fable returns — so a single alert means "go use it," not a stream of repeats.
+
+When Fable comes back, the alert looks like this (terminal channel shown; desktop, email, and phone carry the same text):
+
+```text
+================================================================
+  *** Claude Fable 5 is BACK ONLINE ***
+================================================================
+  claude-fable-5 answered a probe normally at 2026-06-15T18:42:09.
+  Run  /model fable  in Claude Code to use it again.
+  https://www.anthropic.com/news/fable-mythos-access
+================================================================
+```
 
 > **Native Windows:** the daemon needs POSIX `fork`, so use `python fable_watch.py run` (foreground) under Task Scheduler instead of `start`. macOS, Linux, and WSL all support `start`.
 
@@ -103,7 +120,7 @@ Other providers work too — set `FABLE_WATCH_SMTP_HOST` / `FABLE_WATCH_SMTP_POR
 
 [ntfy](https://ntfy.sh) is a free, no-account push service — perfect for "tell me when X happens."
 
-1. Install the **ntfy** app ([iOS](https://apps.apple.com/app/ntfy/id1625396347) / [Android](https://play.google.com/store/apps/details?id=io.heckel.ntfy)), or use the web app at <https://ntfy.sh/app>.
+1. Install the **[ntfy](https://ntfy.sh/)** app for iOS or Android (download links on the homepage), or use the web app at <https://ntfy.sh/app>.
 2. Choose a **long, unguessable topic name** — anyone who knows it can read your alerts, so treat it like a password (e.g. `fable-watch-7h3k9q2x`).
 3. In the app, **subscribe** to that exact topic.
 4. Put it in `.env`:
@@ -127,6 +144,8 @@ Non-secret settings live in **`config.toml`**; secrets and personal targets live
 
 Run `python fable_watch.py status` any time to see which channels are **ON**, **off**, or **enabled but INACTIVE** — with the reason (e.g. a missing `.env` value).
 
+The daemon reads its config once at launch, so **changes to `config.toml` or `.env` take effect on the next start** — run `python fable_watch.py stop` then `start` to apply them.
+
 ## Safe to share
 
 This repository contains **no personal data**. `config.toml` and `.env` are gitignored, and the committed `*.example` templates ship with email and ntfy disabled and blank. Your email address, SMTP app-password, and ntfy topic never leave your machine.
@@ -138,6 +157,16 @@ This repository contains **no personal data**. `config.toml` and `.env` are giti
 - **No phone push** — make sure you subscribed to the *exact* topic name in `.env`, and that `[notify.ntfy]` is enabled.
 - **WSL background lifetime** — the daemon survives a closed terminal but not a full WSL shutdown. Keep a WSL session alive, or relaunch with `start` after resume.
 - **Want faster checks while the situation is live?** — lower `interval_seconds` (e.g. `120`). Each probe is a tiny call on your Max subscription.
+
+## Project layout
+
+| File | Purpose |
+| --- | --- |
+| `fable_watch.py` | CLI, background daemon, watch loop, and the probe |
+| `notify.py` | the four notification channels and the dispatcher |
+| `config.py` | layered config (defaults → `config.toml` → `.env` / environment) |
+| `config.example.toml` | template for `config.toml` — copy and edit |
+| `.env.example` | template for `.env` secrets/targets — copy and edit |
 
 ## License
 
